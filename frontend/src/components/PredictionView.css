@@ -1,0 +1,48 @@
+.spinner {
+    width: 60px;
+    height: 60px;
+    border: 2px solid #f2f3f3;
+    border-top: solid #428bca;
+    border-radius: 100%;
+    margin-top: 30px;
+    margin-left: auto;
+    margin-bottom: 30px;
+    margin-right: auto;
+    animation: spin 1s infinite linear;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+#overlay {
+    height: 100%;
+    width: 100%;
+    background: rgba(0, 0, 0, 1);
+    position: absolute;
+    text-align: center;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    right: 0;
+}
+.button-Info {
+    background-color: #0b2e4a;
+    border-radius: 20px;
+    padding: 5px;
+    color: white;
+    width:100%;
+    font-size:22px;
+    cursor:pointer;
+}
+
+.button-Info:hover {
+    background-color: #f39f1c;
+    transition-duration: 0.5s;
+    color: #0b2e4a;
+}

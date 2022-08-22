@@ -40,9 +40,6 @@ function TextView(props) {
                             accept=".txt, .doc, .docx"
                             onChange={(event) => props.onChange(event)}
                         />
-                        <label htmlFor="file">
-                            <img className="upload" src={upload} alt="Upload"/>
-                        </label>
                     </div>
                 }
             </div>

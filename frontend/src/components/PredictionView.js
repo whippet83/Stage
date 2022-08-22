@@ -1,5 +1,5 @@
 import React from 'react';
-
+import './PredictionView.css'
 
 const colors = ["bg-success", "", "bg-warning", "bg-danger", "bg-info"];
 
