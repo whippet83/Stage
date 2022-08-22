@@ -18,13 +18,13 @@ function TextView(props) {
                 <div className="mx-auto container-fluid">
                     <div>
                         <div>
-                            <img className="img-fluid" src={image} alt="" style={{height: "450px",
+                            <img className="img-fluid" src={image} alt="" style={{height: "470px",
                                 width: "1105px", minWidth: "500px"}}/>
                             {/*1105px*/}
                         </div>
                         <div style={{textAlign:"center"}}>
                             <span style={{textAlign: "center"}}>
-                                <strong>Cliquez sur le bouton dans le coin supérieur gauche pour télécharger un fichier texte</strong>
+                                <strong>Aucun fichier sélectionner</strong>
                             </span>
                         </div>
                     </div>
