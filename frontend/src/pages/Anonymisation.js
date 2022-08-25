@@ -1,25 +1,15 @@
-import React, {Component} from "react";
+import React, {Component, useState} from "react";
 import "../App.css";
 import Navbar from "../components/Navbar/Navbar";
 import Footer from "../components/Footer";
 import TextView from "../components/TextView";
 import PredictionsView from "../components/PredictionView";
 
-class App extends Component{
+function App() {
 
-    constructor(props) {
-        super(props);
-        this.state = {
-            imgFile: null,
-            spinner: false,
-            disabled: true,
-            names: [],
-            probs: []
-        }
-        this.onChange = this.onChange.bind(this);
-    }
+    const [imgFile, setImgFile] = useState({text:"", language:"en"})
 
-    onChange(event) {
+    const onChange = (event) => {
         event.preventDefault();
         if (event.target.files.length === 0) {
             return;
@@ -28,46 +18,50 @@ class App extends Component{
         const reader = new FileReader();
         reader.onload = (event) => {
             text = event.target.result;
-
-            this.setState({
-                imgFile: text,
-                disabled: false,
-                spinner: false
-            });
+            setImgFile({text:text, language: "en"})
         }
         reader.readAsText(event.target.files[0])
-        this.uploadInput = event.target.files[0];
     }
 
-    render() {
+    const onSubmit = () => {
+        console.log(imgFile)
+        //
+        // this.setState({
+        //     spinner: true,
+        //     disabled: true
+        // });
+        fetch('http://localhost:5001/analyze', {
+            mode: 'no-cors',
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(imgFile)
+        }).then(response => response.text())
+          .then(result => console.log(result))
+          .catch(error => console.log('error', error))
+    }
 
-        return (
-            <>
-                <div className="d-flex flex-column min-vh-100">
-                    <Navbar/>
-                    <main style={{alignSelf: "center", minHeight: "85vh"}}>
-                        <div className="h-100">
-                            <div style={{marginTop: "10vh"}}>
-                                <div>
-                                    <TextView imgFile={this.state.imgFile} onChange={this.onChange}/>
-                                    <br/>
-                                    <br/>
-                                    <PredictionsView
-                                        names={this.state.names}
-                                        probs={this.state.probs}
-                                        disabled={this.state.disabled}
-                                        onSubmit={this.onSubmit}
-                                        spinner={this.state.spinner}
-                                    />
-                                </div>
+    return (
+        <>
+            <div className="d-flex flex-column min-vh-100">
+                <Navbar/>
+                <main style={{alignSelf: "center", minHeight: "85vh"}}>
+                    <div className="h-100">
+                        <div style={{marginTop: "10vh"}}>
+                            <div>
+                                <TextView imgFile={imgFile.text} onChange={onChange}/>
+                                <br/>
+                                <br/>
+
+                                <PredictionsView onSubmit={onSubmit}/>
                             </div>
                         </div>
-                    </main>
-                    <Footer/>
-                </div>
-            </>
-        );
-    }
+                    </div>
+                </main>
+                <Footer/>
+            </div>
+        </>
+    );
+
 }
 
 export default App;

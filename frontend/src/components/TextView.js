@@ -10,8 +10,8 @@ function TextView(props) {
     //     split = props.imgFile.toString().split('&')
     // }
     return (
-        <div className="card bg-light" style={props.imgFile === null ? {height: "500px"} : {paddingTop:"100px"}}>
-            {props.imgFile != null ?
+        <div className="card bg-light" style={props.imgFile === "" ? {height: "500px"} : {paddingTop:"100px"}}>
+            {props.imgFile != "" ?
                 props.imgFile.toString().split('&').map(line =>
                     <p style={{fontSize:"20px",paddingLeft:"20px", paddingRight:"20px"}}>{line}</p>)
                 :
