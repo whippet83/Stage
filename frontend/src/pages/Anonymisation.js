@@ -7,37 +7,82 @@ import PredictionsView from "../components/PredictionView";
 
 function App() {
 
-    const [imgFile, setImgFile] = useState({text:"", language:"en"})
+    const [text, setText] = useState("");
+    const [analyse, setAnalyse] = useState([]);
+    const [ano, setAno] = useState("");
 
-    const onChange = (event) => {
-        event.preventDefault();
-        if (event.target.files.length === 0) {
+    const onChange= async(e) =>{
+        e.preventDefault()
+        if (e.target.files.length === 0){
             return;
         }
-        let text;
+        let file
         const reader = new FileReader();
-        reader.onload = (event) => {
-            text = event.target.result;
-            setImgFile({text:text, language: "en"})
+        reader.onload = (e) =>{
+            file = e.target.result;
+            setText(file)
         }
-        reader.readAsText(event.target.files[0])
+        reader.readAsText(e.target.files[0])
     }
 
-    const onSubmit = () => {
-        console.log(imgFile)
-        //
-        // this.setState({
-        //     spinner: true,
-        //     disabled: true
-        // });
-        fetch('http://localhost:5001/analyze', {
-            mode: 'no-cors',
+    const onSubmit= async() =>{
+
+        let raw = JSON.stringify({
+            'text': text,
+            'language': 'en',
+            "score_threshold": 0.6
+        });
+        console.log(text)
+        let requestOptions = {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(imgFile)
-        }).then(response => response.text())
-          .then(result => console.log(result))
-          .catch(error => console.log('error', error))
+            headers: { 'Content-Type': 'application/json' },
+            body: raw,
+            redirect: 'follow'
+        };
+
+        fetch("https://presidio-analyzer-prod.azurewebsites.net/analyze", requestOptions)
+            .then(response => response.json())
+            .then(result => setAnalyse(result))
+            .catch(error => console.log('error', error));
+
+
+        console.log(analyse)
+        analyse.forEach(obj => {
+            delete obj['analysis_explanation'];
+            delete obj['recognition_metadata'];
+        })
+
+        let myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/json");
+
+        let rawAno = JSON.stringify({
+            "text": text,
+            "anonymizers": {
+                "DEFAULT": {
+                    "type": "replace",
+                    "new_value": "ANONYMIZED"
+                },
+                "PHONE_NUMBER": {
+                    "type": "mask",
+                    "masking_char": "*",
+                    "chars_to_mask": 4,
+                    "from_end": true
+                }
+            },
+            "analyzer_results": analyse
+        });
+
+        var requestOptionsAno = {
+            method: 'POST',
+            headers: myHeaders,
+            body: rawAno,
+            redirect: 'follow'
+        };
+
+        fetch("https://presidio-anonymizer-prod.azurewebsites.net/anonymize", requestOptionsAno)
+            .then(response => response.text())
+            .then(result => setAno(result))
+            .catch(error => console.log('error', error));
     }
 
     return (
@@ -48,11 +93,12 @@ function App() {
                     <div className="h-100">
                         <div style={{marginTop: "10vh"}}>
                             <div>
-                                <TextView imgFile={imgFile.text} onChange={onChange}/>
+                                <TextView imgFile={text} onChange={onChange}/>
                                 <br/>
                                 <br/>
 
                                 <PredictionsView onSubmit={onSubmit}/>
+                                {ano}
                             </div>
                         </div>
                     </div>

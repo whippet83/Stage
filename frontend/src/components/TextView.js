@@ -11,7 +11,7 @@ function TextView(props) {
     // }
     return (
         <div className="card bg-light" style={props.imgFile === "" ? {height: "500px"} : {paddingTop:"100px"}}>
-            {props.imgFile != "" ?
+            {props.imgFile !== "" ?
                 props.imgFile.toString().split('&').map(line =>
                     <p style={{fontSize:"20px",paddingLeft:"20px", paddingRight:"20px"}}>{line}</p>)
                 :
