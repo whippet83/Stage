@@ -4,6 +4,9 @@ import Navbar from "../components/Navbar/Navbar";
 import Footer from "../components/Footer";
 import TextView from "../components/TextView";
 import PredictionsView from "../components/PredictionView";
+import Docxtemplater from "docxtemplater";
+import PizzZip from "pizzip"
+import {getValue} from "@testing-library/user-event/dist/utils";
 
 function App() {
 
@@ -11,18 +14,35 @@ function App() {
     const [analyse, setAnalyse] = useState([]);
     const [ano, setAno] = useState("");
 
+
     const onChange= async(e) =>{
         e.preventDefault()
         if (e.target.files.length === 0){
             return;
         }
-        let file
         const reader = new FileReader();
-        reader.onload = (e) =>{
-            file = e.target.result;
-            setText(file)
+        if(`${e.target.files[0].name}`.includes(".doc" || ".pdf" || ".pptx")){
+            reader.onload = async(e) => {
+                const content = e.target.result;
+                let doc = new Docxtemplater(new PizzZip(content), {
+                    delimiters: {
+                        start: '12op1j2po1j2poj1po',
+                        end: 'op21j4po21jp4oj1op24j'
+                    }
+                })
+                let file = doc.getFullText();
+                setText(file)
+            }
+            reader.readAsBinaryString(e.target.files[0])
         }
-        reader.readAsText(e.target.files[0])
+        else{
+            let file
+            reader.onload = (e) =>{
+                file = e.target.result;
+                setText(file)
+            }
+            reader.readAsText(e.target.files[0])
+        }
     }
 
     const onSubmit= async() =>{
@@ -32,7 +52,6 @@ function App() {
             'language': 'en',
             "score_threshold": 0.6
         });
-        console.log(text)
         let requestOptions = {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -45,8 +64,6 @@ function App() {
             .then(result => setAnalyse(result))
             .catch(error => console.log('error', error));
 
-
-        console.log(analyse)
         analyse.forEach(obj => {
             delete obj['analysis_explanation'];
             delete obj['recognition_metadata'];
@@ -80,9 +97,12 @@ function App() {
         };
 
         fetch("https://presidio-anonymizer-prod.azurewebsites.net/anonymize", requestOptionsAno)
-            .then(response => response.text())
+            .then(response => response.json())
             .then(result => setAno(result))
             .catch(error => console.log('error', error));
+
+
+
     }
 
     return (
@@ -98,7 +118,7 @@ function App() {
                                 <br/>
 
                                 <PredictionsView onSubmit={onSubmit}/>
-                                {ano}
+                                {ano.text}
                             </div>
                         </div>
                     </div>
