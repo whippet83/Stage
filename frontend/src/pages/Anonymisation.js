@@ -4,8 +4,10 @@ import Navbar from "../components/Navbar/Navbar";
 import Footer from "../components/Footer";
 import TextView from "../components/TextView";
 import PredictionsView from "../components/PredictionView";
+import {Document, Packer, Paragraph, TextRun, } from 'docx';
 import Docxtemplater from "docxtemplater";
 import PizzZip from "pizzip"
+import { saveAs } from 'file-saver';
 
 function App() {
 
@@ -13,9 +15,16 @@ function App() {
     const [newText, setNewText] = useState("");
     const [analyse, setAnalyse] = useState([]);
     const [ano, setAno] = useState("");
+    const [filename, setFilename] = useState("");
+    let newFileName = "";
 
     const onChange = async (e) => {
-        let name = `${e.target.files[0].name}`
+        let name = `${e.target.files[0].name}`;
+        let test = name.split('.')
+        newFileName = `${test[0]}_Anonymize.docx`
+        setFilename(newFileName)
+        console.log(filename)
+
         e.preventDefault()
         if (e.target.files.length === 0) {
             return;
@@ -31,8 +40,7 @@ function App() {
             }
             reader.readAsText(e.target.files[0])
 
-        }
-        else {
+        } else {
             reader.onload = async (e) => {
                 const content = e.target.result;
                 let doc = new Docxtemplater(new PizzZip(content), {
@@ -72,6 +80,7 @@ function App() {
 
 
         console.log(analyse)
+        console.log(filename)
         analyse.forEach(obj => {
             delete obj['analysis_explanation'];
             delete obj['recognition_metadata'];
@@ -111,18 +120,39 @@ function App() {
 
         const words = [];
         for (let i = 0; i < analyse.length; i++) {
-            words.push(text.substring(analyse[i].start,analyse[i].end))
+            words.push(text.substring(analyse[i].start, analyse[i].end))
         }
         let test = text;
 
-         for (let i = 0; i < words.length; i++) {
-            test = test.replace(words[i].toString(),`<${analyse[i].entity_type}>`.toString());
+        for (let i = 0; i < words.length; i++) {
+            test = test.replace(words[i].toString(), `<${analyse[i].entity_type}>`.toString());
         }
         setNewText(test);
     }
 
     const onClick = () => {
 
+        console.log(newFileName)
+        const doc = new Document({
+            sections: [
+                {
+                    properties: {},
+                    children: [
+                        new Paragraph({
+                            children: [
+                                new TextRun(newText)
+                            ],
+                        }),
+                    ],
+                },
+            ],
+        });
+
+        Packer.toBlob(doc).then(blob => {
+            console.log(blob);
+            saveAs(blob, filename)
+            console.log("Document created successfully");
+        });
     }
 
     return (
@@ -131,24 +161,24 @@ function App() {
                 <Navbar/>
                 <main style={{alignSelf: "center", minHeight: "85vh"}}>
                     <div className="h-100">
-                        <div className="mx-auto container-fluid" style={{marginTop: "10vh", width:"90%"}}>
+                        <div className="mx-auto container-fluid" style={{marginTop: "10vh", width: "90%"}}>
                             <div>
                                 <TextView imgFile={text} onChange={onChange}/>
                                 <br/>
                                 {ano === "" ? <div/> :
-                                    <div className="mx-auto container-fluid card bg-light" style={{padding:"1%"}}>
+                                    <div className="mx-auto container-fluid card bg-light" style={{padding: "1%"}}>
                                         <p><strong>Informations de l'anonymisation</strong></p>
                                         {ano}
                                     </div>}
 
                                 <br/>
                                 {ano === "" ? <div/> :
-                                    <div className="mx-auto container-fluid card bg-light" style={{padding:"1%"}}>
+                                    <div className="mx-auto container-fluid card bg-light" style={{padding: "1%"}}>
                                         <p><strong>Voici les modifications au fichier</strong></p>
                                         {newText}
                                         <p></p>
                                         <div>
-                                            <button className="button-download">Télécharger fichier word</button>
+                                            <button className="button-download" onClick={onClick}>Télécharger fichier word</button>
                                         </div>
                                     </div>}
 
