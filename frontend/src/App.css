@@ -36,3 +36,19 @@
     transform: rotate(360deg);
   }
 }
+
+.button-download {
+  background-color: #0b2e4a;
+  border-radius: 20px;
+  padding: 5px;
+  color: white;
+  cursor:pointer;
+  width: 20%;
+  font-size: 18px;
+}
+
+.button-download:hover {
+  background-color: #f39f1c;
+  transition-duration: 0.5s;
+  color: #0b2e4a;
+}

@@ -37,7 +37,7 @@ function TextView(props) {
                             className="inputfile"
                             type="file"
                             id="file"
-                            accept=".txt, .doc, .docx, .pdf"
+                            accept=".txt, .doc, .docx, .pdf, .pptx"
                             onChange={(event) => props.onChange(event)}
                         />
                     </div>
