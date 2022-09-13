@@ -1,13 +1,13 @@
-import React, {Component, useState} from "react";
+import React, {Component, useEffect, useState} from "react";
 import "../App.css";
 import Navbar from "../components/Navbar/Navbar";
 import Footer from "../components/Footer";
 import TextView from "../components/TextView";
 import PredictionsView from "../components/PredictionView";
-import {Document, Packer, Paragraph, TextRun, } from 'docx';
+import {Document, Packer, Paragraph, TextRun,} from 'docx';
 import Docxtemplater from "docxtemplater";
 import PizzZip from "pizzip"
-import { saveAs } from 'file-saver';
+import {saveAs} from 'file-saver';
 
 function App() {
 
@@ -17,6 +17,22 @@ function App() {
     const [ano, setAno] = useState("");
     const [filename, setFilename] = useState("");
     let newFileName = "";
+
+    async function Analyze(requestOptions) {
+        const res = await fetch("https://presidio-analyzer-prod.azurewebsites.net/analyze", requestOptions)
+        const data = await res.json();
+        console.log(data)
+
+        return data
+    }
+
+    async function Anonymize(requestOptionsAno){
+        const res = await fetch("https://presidio-anonymizer-prod.azurewebsites.net/anonymize", requestOptionsAno)
+        const data = await res.json();
+        console.log(data)
+
+        return data
+    }
 
     const onChange = async (e) => {
         let name = `${e.target.files[0].name}`;
@@ -73,11 +89,7 @@ function App() {
             redirect: 'follow'
         };
 
-        fetch("https://presidio-analyzer-prod.azurewebsites.net/analyze", requestOptions)
-            .then(response => response.json())
-            .then(result => setAnalyse(result))
-            .catch(error => console.log('error', error));
-
+        await setAnalyse(await Analyze(requestOptions))
 
         console.log(analyse)
         console.log(filename)
@@ -103,7 +115,7 @@ function App() {
                     "from_end": true
                 }
             },
-            "analyzer_results": analyse
+            "analyzer_results": await Analyze(requestOptions)
         });
 
         var requestOptionsAno = {
@@ -113,26 +125,15 @@ function App() {
             redirect: 'follow'
         };
 
-        fetch("https://presidio-anonymizer-prod.azurewebsites.net/anonymize", requestOptionsAno)
-            .then(response => response.text())
-            .then(result => setAno(result))
-            .catch(error => console.log('error', error));
-
-        const words = [];
-        for (let i = 0; i < analyse.length; i++) {
-            words.push(text.substring(analyse[i].start, analyse[i].end))
-        }
-        let test = text;
-
-        for (let i = 0; i < words.length; i++) {
-            test = test.replace(words[i].toString(), `<${analyse[i].entity_type}>`.toString());
-        }
-        setNewText(test);
+        await setAno(await Anonymize(requestOptionsAno))
+        console.log(ano)
     }
 
     const onClick = () => {
 
         console.log(newFileName)
+        let word = JSON.stringify(ano.text);
+        let newWord = word.substring(1, word.length - 1)
         const doc = new Document({
             sections: [
                 {
@@ -140,7 +141,7 @@ function App() {
                     children: [
                         new Paragraph({
                             children: [
-                                new TextRun(newText)
+                                new TextRun(newWord)
                             ],
                         }),
                     ],
@@ -168,17 +169,19 @@ function App() {
                                 {ano === "" ? <div/> :
                                     <div className="mx-auto container-fluid card bg-light" style={{padding: "1%"}}>
                                         <p><strong>Informations de l'anonymisation</strong></p>
-                                        {ano}
+                                        {JSON.stringify(ano)}
                                     </div>}
 
                                 <br/>
                                 {ano === "" ? <div/> :
                                     <div className="mx-auto container-fluid card bg-light" style={{padding: "1%"}}>
                                         <p><strong>Voici les modifications au fichier</strong></p>
-                                        {newText}
+                                        {JSON.stringify(ano.text)}
                                         <p></p>
                                         <div>
-                                            <button className="button-download" onClick={onClick}>Télécharger fichier word</button>
+                                            <button className="button-download" onClick={onClick}>Télécharger fichier
+                                                word
+                                            </button>
                                         </div>
                                     </div>}
 
